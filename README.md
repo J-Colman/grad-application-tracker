@@ -26,6 +26,8 @@ This first version will run locally in the terminal and store data in a JSON fil
 
 I'll document useful lessons, bugs and design decisions as the project develops and grows. Setup instructions and usage examples will be added once there is a working version.
 
+---
+
 ### 21/09/2026
 I implemented the first useful piece of application logic: finding opportunities with deadlines inside a supplied date range.
 
