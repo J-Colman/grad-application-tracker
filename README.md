@@ -36,3 +36,11 @@ I initially considered sorting the entire opportunity list and then searching fo
 Deadline may not be set for an opportunity so I made sure to check against `None` before comparison to exclude such cases.
 
 I moved all of this logic into a function named `upcoming_opportunities()` which filters and sorts the data before returning a new list, and printing remains outside the function, keeping the application logic separate from displaying the data.
+
+---
+
+### 22/09/2026
+I felt this was a good place to briefly stop and add some initial tests to the application, so I built a test file that ran 9 tests on `main.py` to verify the robustness of it's logic.
+
+I also added a continuous integration workflow to the Github repo so these tests are automated and run on push.
+
