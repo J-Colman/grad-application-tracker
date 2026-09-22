@@ -1,3 +1,6 @@
+import json
+import os
+import tempfile
 from datetime import date, timedelta
 
 
@@ -49,9 +52,29 @@ def opportunity_from_dict(data):
     )
 
 
+def save_opportunities(opportunities, file_path):
+    # Save opportunities atomically using a temporary JSON file
+    dir_name = os.path.dirname(file_path) or "."
+    os.makedirs(dir_name, exist_ok=True)
+
+    fd, tmp_path = tempfile.mkstemp(dir=dir_name, suffix=".tmp")
+
+    data = [opportunity_to_dict(opportunity) for opportunity in opportunities]
+
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as file:
+            json.dump(data, file, indent=2)
+            file.flush()
+            os.fsync(file.fileno())
+
+        os.replace(tmp_path, file_path)
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+
 def main():
-    today = date(2026, 10, 31)  # Fictional current date
-    valid_range_days = 7
+    file_path = "data/opportunities.json"
 
     # Fictional sample opportunities
     opportunities = [
@@ -61,12 +84,7 @@ def main():
         Opportunity("Anthropic", "Junior MLOps Engineer", date(2026, 10, 27)),
     ]
 
-    valid_opportunities = upcoming_opportunities(opportunities, today, valid_range_days)
-
-    for opportunity in valid_opportunities:
-        data = opportunity_to_dict(opportunity)
-        restored = opportunity_from_dict(data)
-        print(restored)
+    save_opportunities(opportunities, file_path)
 
 
 if __name__ == "__main__":
