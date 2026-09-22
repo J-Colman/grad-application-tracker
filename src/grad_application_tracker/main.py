@@ -41,6 +41,7 @@ def opportunity_to_dict(opportunity):
 
 
 def opportunity_from_dict(data):
+    # Create an Opportunity from a dictionary
     return Opportunity(
         data["company"],
         data["role"],
