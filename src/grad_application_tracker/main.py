@@ -40,6 +40,14 @@ def opportunity_to_dict(opportunity):
     }
 
 
+def opportunity_from_dict(data):
+    return Opportunity(
+        data["company"],
+        data["role"],
+        date.fromisoformat(data["deadline"]) if data["deadline"] is not None else None,
+    )
+
+
 def main():
     today = date(2026, 10, 31)  # Fictional current date
     valid_range_days = 7
@@ -55,7 +63,9 @@ def main():
     valid_opportunities = upcoming_opportunities(opportunities, today, valid_range_days)
 
     for opportunity in valid_opportunities:
-        print(opportunity_to_dict(opportunity))
+        data = opportunity_to_dict(opportunity)
+        restored = opportunity_from_dict(data)
+        print(restored)
 
 
 if __name__ == "__main__":
