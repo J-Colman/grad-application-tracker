@@ -73,18 +73,55 @@ def save_opportunities(opportunities, file_path):
             os.remove(tmp_path)
 
 
+def load_opportunities(file_path):
+    # Load opportunities from a JSON file
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+
+    except FileNotFoundError as error:
+        raise FileNotFoundError(
+            f"Could not load opportunities: file not found: {file_path}"
+        ) from error
+
+    except json.JSONDecodeError as error:
+        raise ValueError(
+            "Could not load opportunities: the JSON file is malformed"
+        ) from error
+
+    if not isinstance(data, list):
+        raise TypeError("Could not load opportunities: expected a JSON list")
+
+    try:
+        return [opportunity_from_dict(item) for item in data]
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError(
+            "Could not load opportunities: invalid opportunity data"
+        ) from error
+
+
 def main():
     file_path = "data/opportunities.json"
 
     # Fictional sample opportunities
-    opportunities = [
-        Opportunity("RedHat", "Junior Developer", date(2026, 11, 4)),
-        Opportunity("Cern", "Junior Software Developer", date(2026, 11, 7)),
-        Opportunity("Google DeepMind", "Junior ML Engineer", date(2027, 1, 10)),
-        Opportunity("Anthropic", "Junior MLOps Engineer", date(2026, 10, 27)),
-    ]
+    if not os.path.exists(file_path):
+        opportunities = [
+            Opportunity("RedHat", "Junior Developer", date(2026, 11, 4)),
+            Opportunity("Cern", "Junior Software Developer", date(2026, 11, 7)),
+            Opportunity("Google DeepMind", "Junior ML Engineer", date(2027, 1, 10)),
+            Opportunity("Anthropic", "Junior MLOps Engineer", date(2026, 10, 27)),
+        ]
 
-    save_opportunities(opportunities, file_path)
+        save_opportunities(opportunities, file_path)
+
+    try:
+        loaded_opportunities = load_opportunities(file_path)
+    except (FileNotFoundError, TypeError, ValueError) as error:
+        print(f"Error: {error}")
+        return
+
+    for opportunity in loaded_opportunities:
+        print(opportunity)
 
 
 if __name__ == "__main__":
