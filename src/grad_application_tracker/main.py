@@ -27,6 +27,19 @@ def upcoming_opportunities(opportunities, today, valid_range_days):
     return valid_opportunities
 
 
+def opportunity_to_dict(opportunity):
+    # Convert an Opportunity into a dictionary
+    return {
+        "company": opportunity.company,
+        "role": opportunity.role,
+        "deadline": (
+            opportunity.deadline.isoformat()
+            if opportunity.deadline is not None
+            else None
+        ),
+    }
+
+
 def main():
     today = date(2026, 10, 31)  # Fictional current date
     valid_range_days = 7
@@ -42,7 +55,7 @@ def main():
     valid_opportunities = upcoming_opportunities(opportunities, today, valid_range_days)
 
     for opportunity in valid_opportunities:
-        print(opportunity)
+        print(opportunity_to_dict(opportunity))
 
 
 if __name__ == "__main__":
