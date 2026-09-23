@@ -116,7 +116,9 @@ def main():
 
     try:
         loaded_opportunities = load_opportunities(file_path)
-        valid_opportunities = upcoming_opportunities(loaded_opportunities, date(2026, 10, 31), 7)
+        valid_opportunities = upcoming_opportunities(
+            loaded_opportunities, date(2026, 10, 31), 7
+        )
     except (FileNotFoundError, TypeError, ValueError) as error:
         print(f"Error: {error}")
         return
