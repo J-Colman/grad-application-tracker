@@ -57,9 +57,9 @@ def save_opportunities(opportunities, file_path):
     dir_name = os.path.dirname(file_path) or "."
     os.makedirs(dir_name, exist_ok=True)
 
-    fd, tmp_path = tempfile.mkstemp(dir=dir_name, suffix=".tmp")
-
     data = [opportunity_to_dict(opportunity) for opportunity in opportunities]
+
+    fd, tmp_path = tempfile.mkstemp(dir=dir_name, suffix=".tmp")
 
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as file:
