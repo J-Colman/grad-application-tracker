@@ -15,6 +15,7 @@ class Opportunity:
     def __str__(self):
         return f"{self.company} | {self.role} | {self.deadline}"
 
+
 def upcoming_opportunities(opportunities, today, valid_range_days):
     """Find opportunities who's deadline is within a specified horizon."""
     end_date = today + timedelta(days=valid_range_days)  # Calculate the last valid date
@@ -105,6 +106,7 @@ def load_opportunities(file_path):
 @click.group()
 def cli():
     """Track graduate job opportunities"""
+
 
 @cli.command("list")
 def list_oppotunities():
