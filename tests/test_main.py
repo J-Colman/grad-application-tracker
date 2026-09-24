@@ -1,14 +1,13 @@
 import json
+from datetime import date
 
 import pytest
 
-from datetime import date
-
 from grad_application_tracker.main import (
     Opportunity,
-    upcoming_opportunities,
     load_opportunities,
     save_opportunities,
+    upcoming_opportunities,
 )
 
 
