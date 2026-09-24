@@ -121,6 +121,7 @@ def test_save_opportunities(tmp_path):
 
     assert saved_data == [
         {
+            "id": opportunity.id,
             "company": "Cern",
             "role": "Junior Software Developer",
             "deadline": "2026-10-31",

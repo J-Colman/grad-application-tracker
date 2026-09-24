@@ -1,23 +1,26 @@
 import json
 import os
 import tempfile
+import uuid
 from datetime import date, timedelta
 
 import click
 
 
 class Opportunity:
-    def __init__(self, company, role, deadline):
+    def __init__(self, company, role, deadline, id=None):
+        self.id = id if id is not None else str(uuid.uuid4())
         self.company = company
         self.role = role
         self.deadline = deadline
 
     def __str__(self):
-        return f"{self.company} | {self.role} | {self.deadline if self.deadline else 'No deadline'}"
+        deadline = self.deadline if self.deadline else "No deadline"
+        return f"{self.id} | {self.company} | {self.role} | {deadline}"
 
 
 def upcoming_opportunities(opportunities, today, valid_range_days):
-    """Find opportunities who's deadline is within a specified horizon"""
+    """Find opportunities whose deadline is within a specified horizon"""
     end_date = today + timedelta(days=valid_range_days)  # Calculate the last valid date
 
     # Filter by opportunities within the valid range
@@ -36,6 +39,7 @@ def upcoming_opportunities(opportunities, today, valid_range_days):
 def opportunity_to_dict(opportunity):
     """Convert an Opportunity into a dictionary"""
     return {
+        "id": opportunity.id,
         "company": opportunity.company,
         "role": opportunity.role,
         "deadline": (
@@ -49,9 +53,12 @@ def opportunity_to_dict(opportunity):
 def opportunity_from_dict(data):
     """Create an Opportunity from a dictionary"""
     return Opportunity(
-        data["company"],
-        data["role"],
-        date.fromisoformat(data["deadline"]) if data["deadline"] is not None else None,
+        id=data.get("id"),
+        company=data["company"],
+        role=data["role"],
+        deadline=date.fromisoformat(data["deadline"])
+        if data["deadline"] is not None
+        else None,
     )
 
 
@@ -84,12 +91,12 @@ def load_opportunities(file_path):
 
     except FileNotFoundError as error:
         raise FileNotFoundError(
-            f"Could not load opportunities: file not found: {file_path}"
+            f"Could not load opportunities: file not found: {file_path}: {error}"
         ) from error
 
     except json.JSONDecodeError as error:
         raise ValueError(
-            "Could not load opportunities: the JSON file is malformed"
+            f"Could not load opportunities: the JSON file is malformed: {error}"
         ) from error
 
     if not isinstance(data, list):
@@ -99,7 +106,7 @@ def load_opportunities(file_path):
         return [opportunity_from_dict(item) for item in data]
     except (KeyError, TypeError, ValueError) as error:
         raise ValueError(
-            "Could not load opportunities: invalid opportunity data"
+            f"Could not load opportunities: invalid opportunity data: {error}"
         ) from error
 
 
