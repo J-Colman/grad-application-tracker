@@ -8,15 +8,28 @@ import click
 
 
 class Opportunity:
-    def __init__(self, company, role, deadline, id=None):
+    VALID_STATUSES = {"saved", "applied", "interviewed", "accepted", "rejected"}
+
+    def __init__(self, company, role, deadline, status="saved", id=None):
         self.id = id if id is not None else str(uuid.uuid4())
         self.company = company
         self.role = role
         self.deadline = deadline
+        self.status = status
+
+    @property
+    def status(self):
+        return self._status
+
+    @status.setter
+    def status(self, value):
+        if value not in self.VALID_STATUSES:
+            raise ValueError(f"Invalid status: {value}")
+        self._status = value
 
     def __str__(self):
         deadline = self.deadline if self.deadline else "No deadline"
-        return f"{self.id} | {self.company} | {self.role} | {deadline}"
+        return f"{self.id} | {self.company} | {self.role} | {deadline} | {self.status}"
 
 
 def upcoming_opportunities(opportunities, today, valid_range_days):
@@ -47,6 +60,7 @@ def opportunity_to_dict(opportunity):
             if opportunity.deadline is not None
             else None
         ),
+        "status": opportunity.status
     }
 
 
@@ -59,6 +73,7 @@ def opportunity_from_dict(data):
         deadline=date.fromisoformat(data["deadline"])
         if data["deadline"] is not None
         else None,
+        status=data.get("status", "saved")
     )
 
 
@@ -140,7 +155,12 @@ def list_opportunities():
 @click.option("--company", required=True, help="Company name.")
 @click.option("--role", required=True, help="Job title.")
 @click.option("--deadline", help="Deadline in YYYY-MM-DD format.")
-def add_opportunity(company, role, deadline):
+@click.option("--status",
+    type=click.Choice(Opportunity.VALID_STATUSES, case_sensitive=False),
+    default="saved",
+    show_default=True,
+)
+def add_opportunity(company, role, deadline, status):
     """Save a new opportunity."""
     file_path = "data/opportunities.json"
 
@@ -158,14 +178,14 @@ def add_opportunity(company, role, deadline):
     except (TypeError, ValueError) as error:
         raise click.ClickException(str(error)) from error
 
-    opportunities.append(Opportunity(company, role, parsed_deadline))
+    opportunities.append(Opportunity(company, role, parsed_deadline, status))
 
     try:
         save_opportunities(opportunities, file_path)
     except OSError as error:
         raise click.ClickException(f"Could not save opportunities: {error}") from error
 
-    click.echo(f"Added {role} at {company}.")
+    click.echo(f"Added '{role}' at '{company}'. Status: {status}")
 
 
 if __name__ == "__main__":
