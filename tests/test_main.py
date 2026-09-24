@@ -112,7 +112,7 @@ def test_original_input_unchanged():
 
 def test_save_opportunities(tmp_path):
     file_path = tmp_path / "opportunities.json"
-    opportunity = Opportunity("Cern", "Junior Software Developer", date(2026, 10, 31))
+    opportunity = Opportunity("Cern", "Junior Software Developer", date(2026, 10, 31), "saved")
 
     save_opportunities([opportunity], file_path)
 
@@ -125,6 +125,7 @@ def test_save_opportunities(tmp_path):
             "company": "Cern",
             "role": "Junior Software Developer",
             "deadline": "2026-10-31",
+            "status": "saved",
         }
     ]
 
