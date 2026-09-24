@@ -1,6 +1,10 @@
+import json
+
+import pytest
+
 from datetime import date
 
-from grad_application_tracker.main import Opportunity, upcoming_opportunities
+from grad_application_tracker.main import Opportunity, upcoming_opportunities, load_opportunities, save_opportunities
 
 
 def test_deadline_today():
@@ -98,17 +102,6 @@ def test_original_input_unchanged():
     upcoming_opportunities(opportunities, today, 7)
 
     assert opportunities == original_order
-
-
-# --------------------------------------------------------------------------------
-import json
-
-import pytest
-
-from grad_application_tracker.main import load_opportunities, save_opportunities
-
-tmp_path = "data/tmp/"
-
 
 def test_save_opportunities(tmp_path):
     file_path = tmp_path / "opportunities.json"
