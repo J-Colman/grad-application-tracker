@@ -1,5 +1,6 @@
 import json
 from datetime import date
+import uuid
 
 import pytest
 from click.testing import CliRunner
@@ -399,3 +400,86 @@ def test_add_malformed_data(tmp_path, monkeypatch):
     assert result.exit_code != 0
     assert "Could not load opportunities" in result.output
     assert file_path.read_text(encoding="utf-8") == malformed_json
+
+
+def test_generated_ids_are_unique_and_persistent(tmp_path):
+    file_path = tmp_path / "opportunities.json"
+
+    first = Opportunity("Cern", "Junior Software Developer", None)
+    second = Opportunity("Anthropic", "Junior ML Engineer", None)
+
+    assert first.id != second.id
+
+    save_opportunities([first, second], file_path)
+
+    loaded = load_opportunities(file_path)
+
+    assert [item.id for item in loaded] == [first.id, second.id]
+
+
+def test_add_saves_status_flag(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    file_path = tmp_path / "data" / "opportunities.json"
+
+    result = CliRunner().invoke(
+        cli,
+        [
+            "add",
+            "--company",
+            "Anthropic",
+            "--role",
+            "Junior ML Engineer",
+            "--status",
+            "applied",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+    data = json.loads(file_path.read_text())
+
+    assert data[0]["status"] == "applied"
+
+
+def test_add_defaults_to_saved(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    file_path = tmp_path / "data" / "opportunities.json"
+
+    result = CliRunner().invoke(
+        cli,
+        [
+            "add",
+            "--company",
+            "Anthropic",
+            "--role",
+            "Junior ML Engineer",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+    data = json.loads(file_path.read_text())
+
+    assert data[0]["status"] == "saved"
+
+def test_invalid_status_rejected(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    file_path = tmp_path / "data" / "opportunities.json"
+
+    result = CliRunner().invoke(
+        cli,
+        [
+            "add",
+            "--company",
+            "Anthropic",
+            "--role",
+            "Junior ML Engineer",
+            "--status",
+            "invalid status",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "Invalid value" in result.output
+    assert "--status" in result.output
+    assert not file_path.exists()
