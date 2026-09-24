@@ -13,11 +13,11 @@ class Opportunity:
         self.deadline = deadline
 
     def __str__(self):
-        return f"{self.company} | {self.role} | {self.deadline}"
+        return f"{self.company} | {self.role} | {self.deadline if self.deadline else 'No deadline'}"
 
 
 def upcoming_opportunities(opportunities, today, valid_range_days):
-    """Find opportunities who's deadline is within a specified horizon."""
+    """Find opportunities who's deadline is within a specified horizon"""
     end_date = today + timedelta(days=valid_range_days)  # Calculate the last valid date
 
     # Filter by opportunities within the valid range
@@ -34,7 +34,7 @@ def upcoming_opportunities(opportunities, today, valid_range_days):
 
 
 def opportunity_to_dict(opportunity):
-    """Convert an Opportunity into a dictionary."""
+    """Convert an Opportunity into a dictionary"""
     return {
         "company": opportunity.company,
         "role": opportunity.role,
@@ -47,7 +47,7 @@ def opportunity_to_dict(opportunity):
 
 
 def opportunity_from_dict(data):
-    """Create an Opportunity from a dictionary."""
+    """Create an Opportunity from a dictionary"""
     return Opportunity(
         data["company"],
         data["role"],
@@ -56,7 +56,7 @@ def opportunity_from_dict(data):
 
 
 def save_opportunities(opportunities, file_path):
-    """Save opportunities atomically using a temporary JSON file."""
+    """Save opportunities atomically using a temporary JSON file"""
     dir_name = os.path.dirname(file_path) or "."
     os.makedirs(dir_name, exist_ok=True)
 
@@ -77,7 +77,7 @@ def save_opportunities(opportunities, file_path):
 
 
 def load_opportunities(file_path):
-    """Load opportunities from a JSON file."""
+    """Load opportunities from a JSON file"""
     try:
         with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
@@ -105,12 +105,12 @@ def load_opportunities(file_path):
 
 @click.group()
 def cli():
-    """Track graduate job opportunities"""
+    """Track graduate job opportunities."""
 
 
 @cli.command("list")
-def list_oppotunities():
-    """Show all saved opportunities"""
+def list_opportunities():
+    """Show all saved opportunities."""
     file_path = "data/opportunities.json"
 
     try:
@@ -127,6 +127,38 @@ def list_oppotunities():
 
     for opportunity in opportunities:
         click.echo(opportunity)
+
+
+@cli.command("add")
+@click.option("--company", required=True, help="Company name.")
+@click.option("--role", required=True, help="Job title.")
+@click.option("--deadline", help="Deadline in YYYY-MM-DD format.")
+def add_opportunity(company, role, deadline):
+    """Save a new opportunity."""
+    file_path = "data/opportunities.json"
+
+    try:
+        parsed_deadline = date.fromisoformat(deadline) if deadline else None
+    except ValueError as error:
+        raise click.BadParameter(
+            "Use YYYY-MM-DD format.", param_hint="--deadline"
+        ) from error
+
+    try:
+        opportunities = load_opportunities(file_path)
+    except FileNotFoundError:
+        opportunities = []
+    except (TypeError, ValueError) as error:
+        raise click.ClickException(str(error)) from error
+
+    opportunities.append(Opportunity(company, role, parsed_deadline))
+
+    try:
+        save_opportunities(opportunities, file_path)
+    except OSError as error:
+        raise click.ClickException(f"Could not save opportunities: {error}") from error
+
+    click.echo(f"Added {role} at {company}.")
 
 
 if __name__ == "__main__":
