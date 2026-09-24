@@ -8,7 +8,7 @@ import click
 
 
 class Opportunity:
-    VALID_STATUSES = {"saved", "applied", "interviewed", "accepted", "rejected"}
+    VALID_STATUSES = ("saved", "applied", "interviewed", "accepted", "rejected")
 
     def __init__(self, company, role, deadline, status="saved", id=None):
         self.id = id if id is not None else str(uuid.uuid4())
@@ -60,7 +60,7 @@ def opportunity_to_dict(opportunity):
             if opportunity.deadline is not None
             else None
         ),
-        "status": opportunity.status
+        "status": opportunity.status,
     }
 
 
@@ -73,7 +73,7 @@ def opportunity_from_dict(data):
         deadline=date.fromisoformat(data["deadline"])
         if data["deadline"] is not None
         else None,
-        status=data.get("status", "saved")
+        status=data.get("status", "saved"),
     )
 
 
@@ -155,7 +155,8 @@ def list_opportunities():
 @click.option("--company", required=True, help="Company name.")
 @click.option("--role", required=True, help="Job title.")
 @click.option("--deadline", help="Deadline in YYYY-MM-DD format.")
-@click.option("--status",
+@click.option(
+    "--status",
     type=click.Choice(Opportunity.VALID_STATUSES, case_sensitive=False),
     default="saved",
     show_default=True,
