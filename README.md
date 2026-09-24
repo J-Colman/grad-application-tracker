@@ -33,6 +33,28 @@ uv sync
 uv run python -m grad_application_tracker.main
 ```
 
+### Usage
+
+Add an opportunity:
+
+```bash
+uv run python -m grad_application_tracker.main add --company "Cern" --role "Junior Software Developer" --deadline 2026-11-06
+```
+
+The deadline is optional. To add an opportunity without one:
+
+```bash
+uv run python -m grad_application_tracker.main add --company "Anthropic" --role "Junior ML Engineer"
+```
+
+List all saved opportunities:
+
+```bash
+uv run python -m grad_application_tracker.main list
+```
+
+Opportunities are stored locally in `data/opportunities.json` and remain available when you run the program again. Run `uv run python -m grad_application_tracker.main --help` to see the available commands.
+
 ## Development Notes
 
 I'll document useful lessons, bugs and design decisions as the project develops and grows. 
@@ -68,3 +90,9 @@ I added some new tests to ensure saving and loading data was working as expected
 ---
 
 ### 24/09/2026
+
+I started the session today by refactoring parts of the main and test files to make them more readable and sensible. I also clashed up against the Ruff formatting a few of times as it broke the automated workflow, resulting in that unsightly red cross.
+
+Designed how I wanted the `add` opportunity command to look and built both that command and the `list` opportunities command using Click. This took some careful reading of the docs and experimentation as I hadn't used Click before.
+
+I built some more tests that now encompass the new commands.
