@@ -2,9 +2,11 @@ import json
 from datetime import date
 
 import pytest
+from click.testing import CliRunner
 
 from grad_application_tracker.main import (
     Opportunity,
+    cli,
     load_opportunities,
     save_opportunities,
     upcoming_opportunities,
@@ -98,7 +100,7 @@ def test_original_input_unchanged():
     today = date(2026, 10, 31)
 
     opportunities = [
-        Opportunity("Cern", "Junior Developer", date(2026, 11, 6)),
+        Opportunity("Cern", "Junior Software Developer", date(2026, 11, 6)),
         Opportunity("Anthropic", "Junior Engineer", date(2026, 11, 2)),
     ]
     original_order = opportunities.copy()
@@ -110,7 +112,7 @@ def test_original_input_unchanged():
 
 def test_save_opportunities(tmp_path):
     file_path = tmp_path / "opportunities.json"
-    opportunity = Opportunity("Cern", "Junior Developer", date(2026, 10, 31))
+    opportunity = Opportunity("Cern", "Junior Software Developer", date(2026, 10, 31))
 
     save_opportunities([opportunity], file_path)
 
@@ -120,7 +122,7 @@ def test_save_opportunities(tmp_path):
     assert saved_data == [
         {
             "company": "Cern",
-            "role": "Junior Developer",
+            "role": "Junior Software Developer",
             "deadline": "2026-10-31",
         }
     ]
@@ -134,7 +136,7 @@ def test_load_opportunities(tmp_path):
             [
                 {
                     "company": "Cern",
-                    "role": "Junior Developer",
+                    "role": "Junior Software Developer",
                     "deadline": "2026-10-31",
                 }
             ],
@@ -145,13 +147,13 @@ def test_load_opportunities(tmp_path):
 
     assert len(loaded_data) == 1
     assert loaded_data[0].company == "Cern"
-    assert loaded_data[0].role == "Junior Developer"
+    assert loaded_data[0].role == "Junior Software Developer"
     assert loaded_data[0].deadline == date(2026, 10, 31)
 
 
 def test_none_deadline_survives(tmp_path):
     file_path = tmp_path / "opportunities.json"
-    opportunity = Opportunity("Cern", "Junior Developer", None)
+    opportunity = Opportunity("Cern", "Junior Software Developer", None)
 
     save_opportunities([opportunity], file_path)
     loaded_data = load_opportunities(file_path)
@@ -207,7 +209,7 @@ def test_missing_opportunity_field_raises_value_error(tmp_path):
             [
                 {
                     "company": "Cern",
-                    "role": "Junior Developer",
+                    "role": "Junior Software Developer",
                 }
             ],
             file,
@@ -225,7 +227,7 @@ def test_invalid_deadline_raises_value_error(tmp_path):
             [
                 {
                     "company": "Cern",
-                    "role": "Junior Developer",
+                    "role": "Junior Software Developer",
                     "deadline": "2026/10/31",
                 }
             ],
@@ -239,7 +241,7 @@ def test_invalid_deadline_raises_value_error(tmp_path):
 def test_save_creates_parent_directory(tmp_path):
     data_dir = tmp_path / "data"
     file_path = data_dir / "opportunities.json"
-    opportunity = Opportunity("Cern", "Junior Developer", None)
+    opportunity = Opportunity("Cern", "Junior Software Developer", None)
 
     assert not data_dir.exists()
 
@@ -263,3 +265,135 @@ def test_save_replaces_previous_state(tmp_path):
     assert loaded_data[0].company == "Anthropic"
     assert loaded_data[0].role == "Junior ML Engineer"
     assert loaded_data[0].deadline == date(2026, 11, 3)
+
+
+def test_add_then_list(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    runner = CliRunner()
+
+    added = runner.invoke(
+        cli,
+        [
+            "add",
+            "--company",
+            "Cern",
+            "--role",
+            "Junior Software Developer",
+            "--deadline",
+            "2026-11-01",
+        ],
+    )
+    assert added.exit_code == 0
+
+    listed = runner.invoke(cli, ["list"])
+
+    assert listed.exit_code == 0
+    assert "Cern | Junior Software Developer | 2026-11-01" in listed.output
+
+
+def test_add_to_existing_file(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    file_path = tmp_path / "data" / "opportunities.json"
+
+    existing = Opportunity("Cern", "Junior Software Developer", date(2026, 11, 1))
+    save_opportunities([existing], file_path)
+
+    result = CliRunner().invoke(
+        cli,
+        [
+            "add",
+            "--company",
+            "Anthropic",
+            "--role",
+            "Junior ML Engineer",
+            "--deadline",
+            "2026-11-02",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+    saved = load_opportunities(file_path)
+
+    assert len(saved) == 2
+    assert saved[0].company == "Cern"
+    assert saved[1].company == "Anthropic"
+
+
+def test_add_without_deadline(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    runner = CliRunner()
+
+    added = runner.invoke(
+        cli,
+        [
+            "add",
+            "--company",
+            "Cern",
+            "--role",
+            "Junior Software Developer",
+        ],
+    )
+
+    assert added.exit_code == 0
+
+    listed = runner.invoke(cli, ["list"])
+
+    assert "No deadline" in listed.output
+
+
+def test_reject_invalid_deadline(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    runner = CliRunner()
+
+    added = runner.invoke(
+        cli,
+        [
+            "add",
+            "--company",
+            "Cern",
+            "--role",
+            "Junior Software Developer",
+            "--deadline",
+            "string",
+        ],
+    )
+
+    assert added.exit_code != 0
+    assert "Use YYYY-MM-DD format." in added.output
+    assert not (tmp_path / "data" / "opportunities.json").exists()
+
+
+def test_list_no_file(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    runner = CliRunner()
+
+    listed = runner.invoke(cli, ["list"])
+
+    assert "No opportunities saved yet" in listed.output
+
+
+def test_add_malformed_data(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    file_path = tmp_path / "data" / "opportunities.json"
+    file_path.parent.mkdir()
+
+    malformed_json = '[{"company: "Cern"'
+    file_path.write_text(malformed_json, encoding="utf-8")
+
+    result = CliRunner().invoke(
+        cli,
+        [
+            "add",
+            "--company",
+            "Anthropic",
+            "--role",
+            "Junior ML Engineer",
+            "--deadline",
+            "2026-11-02",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "Could not load opportunities" in result.output
+    assert file_path.read_text(encoding="utf-8") == malformed_json
