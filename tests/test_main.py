@@ -1,6 +1,5 @@
 import json
 from datetime import date
-import uuid
 
 import pytest
 from click.testing import CliRunner
@@ -113,7 +112,9 @@ def test_original_input_unchanged():
 
 def test_save_opportunities(tmp_path):
     file_path = tmp_path / "opportunities.json"
-    opportunity = Opportunity("Cern", "Junior Software Developer", date(2026, 10, 31), "saved")
+    opportunity = Opportunity(
+        "Cern", "Junior Software Developer", date(2026, 10, 31), "saved"
+    )
 
     save_opportunities([opportunity], file_path)
 
@@ -461,6 +462,7 @@ def test_add_defaults_to_saved(tmp_path, monkeypatch):
     data = json.loads(file_path.read_text())
 
     assert data[0]["status"] == "saved"
+
 
 def test_invalid_status_rejected(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
