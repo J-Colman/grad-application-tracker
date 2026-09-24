@@ -3,6 +3,8 @@ import os
 import tempfile
 from datetime import date, timedelta
 
+import click
+
 
 class Opportunity:
     def __init__(self, company, role, deadline):
@@ -13,8 +15,8 @@ class Opportunity:
     def __str__(self):
         return f"{self.company} | {self.role} | {self.deadline}"
 
-
 def upcoming_opportunities(opportunities, today, valid_range_days):
+    """Find opportunities who's deadline is within a specified horizon."""
     end_date = today + timedelta(days=valid_range_days)  # Calculate the last valid date
 
     # Filter by opportunities within the valid range
@@ -31,7 +33,7 @@ def upcoming_opportunities(opportunities, today, valid_range_days):
 
 
 def opportunity_to_dict(opportunity):
-    # Convert an Opportunity into a dictionary
+    """Convert an Opportunity into a dictionary."""
     return {
         "company": opportunity.company,
         "role": opportunity.role,
@@ -44,7 +46,7 @@ def opportunity_to_dict(opportunity):
 
 
 def opportunity_from_dict(data):
-    # Create an Opportunity from a dictionary
+    """Create an Opportunity from a dictionary."""
     return Opportunity(
         data["company"],
         data["role"],
@@ -53,7 +55,7 @@ def opportunity_from_dict(data):
 
 
 def save_opportunities(opportunities, file_path):
-    # Save opportunities atomically using a temporary JSON file
+    """Save opportunities atomically using a temporary JSON file."""
     dir_name = os.path.dirname(file_path) or "."
     os.makedirs(dir_name, exist_ok=True)
 
@@ -74,7 +76,7 @@ def save_opportunities(opportunities, file_path):
 
 
 def load_opportunities(file_path):
-    # Load opportunities from a JSON file
+    """Load opportunities from a JSON file."""
     try:
         with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
@@ -100,32 +102,30 @@ def load_opportunities(file_path):
         ) from error
 
 
-def main():
+@click.group()
+def cli():
+    """Track graduate job opportunities"""
+
+@cli.command("list")
+def list_oppotunities():
+    """Show all saved opportunities"""
     file_path = "data/opportunities.json"
 
-    # Fictional sample opportunities
-    if not os.path.exists(file_path):
-        opportunities = [
-            Opportunity("RedHat", "Junior Developer", date(2026, 11, 4)),
-            Opportunity("Cern", "Junior Software Developer", date(2026, 11, 7)),
-            Opportunity("Google DeepMind", "Junior ML Engineer", date(2027, 1, 10)),
-            Opportunity("Anthropic", "Junior MLOps Engineer", date(2026, 10, 27)),
-        ]
-
-        save_opportunities(opportunities, file_path)
-
     try:
-        loaded_opportunities = load_opportunities(file_path)
-        valid_opportunities = upcoming_opportunities(
-            loaded_opportunities, date(2026, 10, 31), 7
-        )
-    except (FileNotFoundError, TypeError, ValueError) as error:
-        print(f"Error: {error}")
+        opportunities = load_opportunities(file_path)
+    except FileNotFoundError:
+        click.echo("No opportunities saved yet.")
+        return
+    except (TypeError, ValueError) as error:
+        raise click.ClickException(str(error)) from error
+
+    if not opportunities:
+        click.echo("No opportunities saved yet.")
         return
 
-    for opportunity in valid_opportunities:
-        print(opportunity)
+    for opportunity in opportunities:
+        click.echo(opportunity)
 
 
 if __name__ == "__main__":
-    main()
+    cli()
