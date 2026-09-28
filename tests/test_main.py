@@ -9,8 +9,8 @@ from grad_application_tracker.main import (
     cli,
     load_opportunities,
     save_opportunities,
-    upcoming_opportunities,
 )
+from grad_application_tracker.services import upcoming_opportunities
 
 
 def test_deadline_today():
