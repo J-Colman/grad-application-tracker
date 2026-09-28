@@ -4,13 +4,10 @@ from datetime import date
 import pytest
 from click.testing import CliRunner
 
-from grad_application_tracker.main import (
-    Opportunity,
-    cli,
-    load_opportunities,
-    save_opportunities,
-)
+from grad_application_tracker.cli import cli
+from grad_application_tracker.models import Opportunity
 from grad_application_tracker.services import upcoming_opportunities
+from grad_application_tracker.storage import load_opportunities, save_opportunities
 
 
 def test_deadline_today():
