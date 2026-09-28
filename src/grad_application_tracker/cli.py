@@ -2,9 +2,8 @@ from datetime import date
 
 import click
 
+from . import services
 from .models import Opportunity
-from .services import get_opportunities
-from .storage import save_opportunities
 
 
 @click.group()
@@ -18,7 +17,7 @@ def list_opportunities():
     file_path = "data/opportunities.json"
 
     try:
-        opportunities = get_opportunities(file_path)
+        opportunities = services.get_opportunities(file_path)
     except (TypeError, ValueError) as error:
         raise click.ClickException(str(error)) from error
 
@@ -52,15 +51,10 @@ def add_opportunity(company, role, deadline, status):
         ) from error
 
     try:
-        opportunities = get_opportunities(file_path)
+        services.add_opportunity(file_path, company, role, parsed_deadline, status)
     except (TypeError, ValueError) as error:
         raise click.ClickException(str(error)) from error
-
-    opportunities.append(Opportunity(company, role, parsed_deadline, status))
-
-    try:
-        save_opportunities(opportunities, file_path)
     except OSError as error:
         raise click.ClickException(f"Could not save opportunities: {error}") from error
 
-    click.echo(f"Added '{role}' at '{company}'. Status: {status}")
+    click.echo(f"Added '{role}' at '{company}'. Status: '{status}'")

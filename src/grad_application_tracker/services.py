@@ -1,6 +1,7 @@
 from datetime import timedelta
 
-from .storage import load_opportunities
+from .models import Opportunity
+from .storage import load_opportunities, save_opportunities
 
 
 def upcoming_opportunities(opportunities, today, valid_range_days):
@@ -26,3 +27,13 @@ def get_opportunities(file_path):
 
     except FileNotFoundError:
         return []
+
+def add_opportunity(file_path, company, role, deadline, status):
+    """Save a new opportunity"""
+    opportunities = get_opportunities(file_path)
+
+    opportunity = Opportunity(company, role, deadline, status)
+    opportunities.append(opportunity)
+
+    save_opportunities(opportunities, file_path)
+    return opportunity
