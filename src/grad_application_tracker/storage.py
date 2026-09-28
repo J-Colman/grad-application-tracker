@@ -2,11 +2,13 @@ import json
 import os
 import tempfile
 from datetime import date
+from pathlib import Path
+from typing import Any
 
 from .models import Opportunity
 
 
-def opportunity_to_dict(opportunity):
+def opportunity_to_dict(opportunity: Opportunity) -> dict[str, str | None]:
     """Convert an Opportunity into a dictionary"""
     return {
         "id": opportunity.id,
@@ -21,7 +23,7 @@ def opportunity_to_dict(opportunity):
     }
 
 
-def opportunity_from_dict(data):
+def opportunity_from_dict(data: dict[str, Any]) -> Opportunity:
     """Create an Opportunity from a dictionary"""
     return Opportunity(
         id=data.get("id"),
@@ -34,7 +36,7 @@ def opportunity_from_dict(data):
     )
 
 
-def save_opportunities(opportunities, file_path):
+def save_opportunities(opportunities: list[Opportunity], file_path: str | Path) -> None:
     """Save opportunities atomically using a temporary JSON file"""
     dir_name = os.path.dirname(file_path) or "."
     os.makedirs(dir_name, exist_ok=True)
@@ -55,7 +57,7 @@ def save_opportunities(opportunities, file_path):
             os.remove(tmp_path)
 
 
-def load_opportunities(file_path):
+def load_opportunities(file_path: str | Path) -> list[Opportunity]:
     """Load opportunities from a JSON file"""
     try:
         with open(file_path, "r", encoding="utf-8") as file:

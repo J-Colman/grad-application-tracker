@@ -5,16 +5,16 @@ import click
 from . import services
 from .models import Opportunity
 
-DATA_PATH = "data/opportunities.json"
+DATA_PATH: str = "data/opportunities.json"
 
 
 @click.group()
-def cli():
+def cli() -> None:
     """Track graduate job opportunities."""
 
 
 @cli.command("list")
-def list_opportunities():
+def list_opportunities() -> None:
     """Show all saved opportunities."""
     try:
         opportunities = services.get_opportunities(DATA_PATH)
@@ -39,7 +39,7 @@ def list_opportunities():
     default="saved",
     show_default=True,
 )
-def add_opportunity(company, role, deadline, status):
+def add_opportunity(company: str, role: str, deadline: str | None, status: str) -> None:
     """Save a new opportunity."""
     try:
         parsed_deadline = date.fromisoformat(deadline) if deadline else None
