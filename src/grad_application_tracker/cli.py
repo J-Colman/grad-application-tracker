@@ -3,7 +3,8 @@ from datetime import date
 import click
 
 from .models import Opportunity
-from .storage import load_opportunities, save_opportunities
+from .services import get_opportunities
+from .storage import save_opportunities
 
 
 @click.group()
@@ -17,10 +18,7 @@ def list_opportunities():
     file_path = "data/opportunities.json"
 
     try:
-        opportunities = load_opportunities(file_path)
-    except FileNotFoundError:
-        click.echo("No opportunities saved yet.")
-        return
+        opportunities = get_opportunities(file_path)
     except (TypeError, ValueError) as error:
         raise click.ClickException(str(error)) from error
 
@@ -54,9 +52,7 @@ def add_opportunity(company, role, deadline, status):
         ) from error
 
     try:
-        opportunities = load_opportunities(file_path)
-    except FileNotFoundError:
-        opportunities = []
+        opportunities = get_opportunities(file_path)
     except (TypeError, ValueError) as error:
         raise click.ClickException(str(error)) from error
 

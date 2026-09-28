@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+from .storage import load_opportunities
+
 
 def upcoming_opportunities(opportunities, today, valid_range_days):
     """Find opportunities whose deadline is within a specified horizon"""
@@ -16,3 +18,11 @@ def upcoming_opportunities(opportunities, today, valid_range_days):
     # Sort by opportunity deadline ascending
     valid_opportunities.sort(key=lambda opportunity: opportunity.deadline)
     return valid_opportunities
+
+def get_opportunities(file_path):
+    """Return an empty list if file not found"""
+    try:
+        return load_opportunities(file_path)
+
+    except FileNotFoundError:
+        return []
