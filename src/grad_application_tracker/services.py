@@ -20,6 +20,7 @@ def upcoming_opportunities(opportunities, today, valid_range_days):
     valid_opportunities.sort(key=lambda opportunity: opportunity.deadline)
     return valid_opportunities
 
+
 def get_opportunities(file_path):
     """Return an empty list if file not found"""
     try:
@@ -27,6 +28,7 @@ def get_opportunities(file_path):
 
     except FileNotFoundError:
         return []
+
 
 def add_opportunity(file_path, company, role, deadline, status):
     """Save a new opportunity"""

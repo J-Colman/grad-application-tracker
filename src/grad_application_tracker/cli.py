@@ -5,6 +5,8 @@ import click
 from . import services
 from .models import Opportunity
 
+DATA_PATH = "data/opportunities.json"
+
 
 @click.group()
 def cli():
@@ -14,10 +16,8 @@ def cli():
 @cli.command("list")
 def list_opportunities():
     """Show all saved opportunities."""
-    file_path = "data/opportunities.json"
-
     try:
-        opportunities = services.get_opportunities(file_path)
+        opportunities = services.get_opportunities(DATA_PATH)
     except (TypeError, ValueError) as error:
         raise click.ClickException(str(error)) from error
 
@@ -41,8 +41,6 @@ def list_opportunities():
 )
 def add_opportunity(company, role, deadline, status):
     """Save a new opportunity."""
-    file_path = "data/opportunities.json"
-
     try:
         parsed_deadline = date.fromisoformat(deadline) if deadline else None
     except ValueError as error:
@@ -51,7 +49,7 @@ def add_opportunity(company, role, deadline, status):
         ) from error
 
     try:
-        services.add_opportunity(file_path, company, role, parsed_deadline, status)
+        services.add_opportunity(DATA_PATH, company, role, parsed_deadline, status)
     except (TypeError, ValueError) as error:
         raise click.ClickException(str(error)) from error
     except OSError as error:
